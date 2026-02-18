@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WARJORN — Coming Soon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #4ade80;
+      --dark-green: #16a34a;
+      --red: #ef4444;
+      --gold: #fbbf24;
+      --stone: #78716c;
+      --dirt: #92400e;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* ── MINECRAFT PIXEL BACKGROUND ── */
+    .bg {
+      position: fixed; inset: 0;
+      background-color: #1a1a2e;
+      background-image:
+        /* Sky gradient */
+        linear-gradient(to bottom,
+          #1e3a5f 0%,
+          #2d6a9f 30%,
+          #5ba3d9 55%,
+          #8ecae6 65%
+        );
+      z-index: 0;
+    }
+
+    /* Pixel clouds */
+    .clouds {
+      position: fixed; inset: 0; z-index: 1;
+      overflow: hidden;
+    }
+    .cloud {
+      position: absolute;
+      background: #ffffffdd;
+      image-rendering: pixelated;
+      animation: cloudDrift linear infinite;
+    }
+
+    /* Pixel terrain at bottom */
+    .terrain {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 2;
+      height: 200px;
+      background:
+        /* Grass top */
+        linear-gradient(to bottom,
+          #4ade80 0px, #4ade80 32px,
+          #92400e 32px, #92400e 96px,
+          #57534e 96px, #57534e 160px,
+          #1c1917 160px
+        );
+      box-shadow: inset 0 2px 0 #86efac;
+    }
+
+    /* Stone texture dots on terrain */
+    .terrain::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 60%, #a8a29e33 2px, transparent 2px),
+        radial-gradient(circle at 50% 70%, #78716c44 3px, transparent 3px),
+        radial-gradient(circle at 75% 55%, #a8a29e22 2px, transparent 2px),
+        radial-gradient(circle at 35% 85%, #57534e55 2px, transparent 2px);
+      background-size: 64px 64px;
+    }
+
+    /* Trees (pixel style) */
+    .trees {
+      position: fixed; bottom: 168px; left: 0; right: 0; z-index: 3;
+      pointer-events: none;
+    }
+    .tree {
+      position: absolute;
+      bottom: 0;
+    }
+    .tree-trunk {
+      width: 16px; height: 48px;
+      background: #92400e;
+      margin: 0 auto;
+      box-shadow: inset -4px 0 0 #78350f;
+    }
+    .tree-leaves {
+      width: 64px; height: 64px;
+      background: #16a34a;
+      box-shadow:
+        inset -8px 0 0 #15803d,
+        inset 0 -8px 0 #166534;
+      margin-left: -24px;
+      position: relative;
+    }
+    .tree-leaves::before {
+      content: '';
+      position: absolute;
+      top: -24px; left: 8px;
+      width: 48px; height: 32px;
+      background: #22c55e;
+      box-shadow: inset -4px 0 0 #16a34a;
+    }
+
+    /* Sun */
+    .sun {
+      position: fixed;
+      top: 8%; right: 12%;
+      width: 64px; height: 64px;
+      background: #fbbf24;
+      box-shadow: 0 0 0 8px #fde68a44, 0 0 0 16px #fde68a22;
+      z-index: 2;
+      animation: sunPulse 4s ease-in-out infinite;
+    }
+
+    /* ── GRADIENT OVERLAY ── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 10;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.85) 100%),
+        linear-gradient(to bottom,
+          rgba(0,0,0,0.6) 0%,
+          rgba(0,0,0,0.1) 40%,
+          rgba(0,0,0,0.2) 60%,
+          rgba(0,0,0,0.9) 100%
+        );
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      position: fixed; inset: 0; z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 32px;
+    }
+
+    /* Logo */
+    .logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(2rem, 6vw, 5rem);
+      color: #fff;
+      letter-spacing: 0.08em;
+      text-shadow:
+        4px 4px 0 #ef4444,
+        8px 8px 0 #7f1d1d,
+        0 0 40px rgba(239,68,68,0.6),
+        0 0 80px rgba(239,68,68,0.3);
+      animation: logoGlow 3s ease-in-out infinite;
+      position: relative;
+    }
+    .logo::after {
+      content: 'WARJORN';
+      position: absolute; inset: 0;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(251,191,36,0.4);
+      filter: blur(8px);
+      animation: logoGlow 3s ease-in-out infinite reverse;
+    }
+
+    /* Tagline */
+    .tagline {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.45rem, 1.2vw, 0.75rem);
+      color: var(--gold);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 14px;
+      opacity: 0.9;
+      text-shadow: 0 0 12px rgba(251,191,36,0.7);
+    }
+
+    /* Divider */
+    .divider {
+      width: 320px;
+      max-width: 80vw;
+      height: 4px;
+      margin: 28px auto;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '⚔';
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      color: var(--gold);
+      font-size: 1.2rem;
+      text-shadow: 0 0 10px var(--gold);
+    }
+    .divider::before { left: -20px; }
+    .divider::after { right: -20px; }
+
+    /* Coming Soon badge */
+    .badge {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.5rem, 1.5vw, 0.85rem);
+      color: #fff;
+      background: var(--red);
+      padding: 10px 24px;
+      border: 3px solid #fff;
+      box-shadow:
+        4px 4px 0 #7f1d1d,
+        0 0 20px rgba(239,68,68,0.5);
+      letter-spacing: 0.15em;
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    /* Description */
+    .desc {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 600;
+      color: #e2e8f0;
+      text-align: center;
+      max-width: 500px;
+      margin-top: 24px;
+      line-height: 1.6;
+      letter-spacing: 0.05em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      padding: 0 16px;
+    }
+
+    /* Countdown */
+    .countdown-wrap {
+      margin-top: 36px;
+      display: flex;
+      gap: clamp(12px, 3vw, 32px);
+      align-items: flex-start;
+    }
+    .count-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .count-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(1.5rem, 4vw, 3rem);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid rgba(251,191,36,0.5);
+      width: clamp(64px, 12vw, 100px);
+      height: clamp(64px, 12vw, 100px);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,0.1),
+        0 4px 0 rgba(0,0,0,0.5),
+        0 0 20px rgba(251,191,36,0.15);
+      transition: transform 0.1s;
+    }
+    .count-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.3rem, 0.8vw, 0.5rem);
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      opacity: 0.8;
+    }
+
+    /* Server IP box */
+    .ip-box {
+      margin-top: 36px;
+      border: 2px solid rgba(74,222,128,0.4);
+      padding: 14px 32px;
+      background: rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(74,222,128,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ip-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.35rem, 0.8vw, 0.5rem);
+      color: var(--green);
+      letter-spacing: 0.2em;
+    }
+    .ip-value {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.5rem, 1.2vw, 0.75rem);
+      color: #fff;
+      letter-spacing: 0.1em;
+    }
+    .ip-ping {
+      width: 10px; height: 10px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: ping 1.5s ease-in-out infinite;
+    }
+
+    /* Pixel particles */
+    .particles {
+      position: fixed; inset: 0; z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: var(--green);
+      opacity: 0;
+      animation: particleFall linear infinite;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes logoGlow {
+      0%, 100% { text-shadow: 4px 4px 0 #ef4444, 8px 8px 0 #7f1d1d, 0 0 40px rgba(239,68,68,0.6), 0 0 80px rgba(239,68,68,0.3); }
+      50% { text-shadow: 4px 4px 0 #ef4444, 8px 8px 0 #7f1d1d, 0 0 60px rgba(239,68,68,0.9), 0 0 120px rgba(239,68,68,0.5), 0 0 0 2px rgba(251,191,36,0.3); }
+    }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); box-shadow: 6px 6px 0 #7f1d1d, 0 0 30px rgba(239,68,68,0.7); }
+    }
+    @keyframes ping {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.4); box-shadow: 0 0 16px var(--green); }
+    }
+    @keyframes sunPulse {
+      0%, 100% { box-shadow: 0 0 0 8px #fde68a44, 0 0 0 16px #fde68a22; }
+      50% { box-shadow: 0 0 0 12px #fde68a55, 0 0 0 24px #fde68a33; }
+    }
+    @keyframes cloudDrift {
+      from { transform: translateX(-200px); }
+      to { transform: translateX(calc(100vw + 200px)); }
+    }
+    @keyframes particleFall {
+      0% { opacity: 0.8; transform: translateY(-20px) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg"></div>
+
+  <!-- Sun -->
+  <div class="sun"></div>
+
+  <!-- Clouds -->
+  <div class="clouds" id="clouds"></div>
+
+  <!-- Trees -->
+  <div class="trees" id="trees"></div>
+
+  <!-- Terrain -->
+  <div class="terrain"></div>
+
+  <!-- Particle effects -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Gradient overlay -->
+  <div class="overlay"></div>
+
+  <!-- Main content -->
+  <div class="content">
+    <div class="logo">WARJORN</div>
+    <div class="tagline">⚔ Minecraft Geopol Server ⚔</div>
+    <div class="divider"></div>
+    <div class="badge">⛏ COMING SOON ⛏</div>
+    <p class="desc">Forge your legend. Build your empire.<br>Crush your enemies. The war begins soon.</p>
+
+    <div class="countdown-wrap">
+      <div class="count-box">
+        <div class="count-num" id="days">00</div>
+        <div class="count-label">DAYS</div>
+      </div>
+      <div class="count-box">
+        <div class="count-num" id="hours">00</div>
+        <div class="count-label">HOURS</div>
+      </div>
+      <div class="count-box">
+        <div class="count-num" id="mins">00</div>
+        <div class="count-label">MINS</div>
+      </div>
+      <div class="count-box">
+        <div class="count-num" id="secs">00</div>
+        <div class="count-label">SECS</div>
+      </div>
+    </div>
+
+    <div class="ip-box">
+      <div class="ip-ping"></div>
+      <div class="ip-label">SERVER IP:</div>
+      <div class="ip-value">mc.warjorn.club</div>
+    </div>
+  </div>
+
+  <script>
+    // ── Countdown (30 days from now) ──
+    const launch = new Date('2026-03-15T18:00:00Z'); // 12PM CST = 18:00 UTC
+    function updateCountdown() {
+      const diff = launch - Date.now();
+      if (diff <= 0) return;
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('days').textContent = pad(d);
+      document.getElementById('hours').textContent = pad(h);
+      document.getElementById('mins').textContent = pad(m);
+      document.getElementById('secs').textContent = pad(s);
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ── Pixel clouds ──
+    const cloudContainer = document.getElementById('clouds');
+    const cloudData = [
+      { top: '8%', width: 128, height: 32, duration: 60, delay: 0 },
+      { top: '14%', width: 96, height: 24, duration: 80, delay: -20 },
+      { top: '6%', width: 160, height: 40, duration: 70, delay: -40 },
+      { top: '18%', width: 80, height: 20, duration: 90, delay: -10 },
+    ];
+    cloudData.forEach(c => {
+      const cloud = document.createElement('div');
+      cloud.className = 'cloud';
+      cloud.style.cssText = `top:${c.top}; width:${c.width}px; height:${c.height}px;
+        animation-duration:${c.duration}s; animation-delay:${c.delay}s; left:-${c.width}px;
+        border-radius:0;`;
+      cloudContainer.appendChild(cloud);
+
+      // Pixel bumps on cloud
+      const bumps = [
+        { l: '20%', b: '100%', w: Math.round(c.width * 0.3), h: Math.round(c.height * 0.8) },
+        { l: '45%', b: '100%', w: Math.round(c.width * 0.25), h: Math.round(c.height * 1) },
+      ];
+      bumps.forEach(b => {
+        const bump = document.createElement('div');
+        bump.style.cssText = `position:absolute; left:${b.l}; bottom:${b.b};
+          width:${b.w}px; height:${b.h}px; background:#ffffffdd;`;
+        cloud.appendChild(bump);
+      });
+    });
+
+    // ── Pixel trees ──
+    const treeContainer = document.getElementById('trees');
+    const positions = [3, 10, 18, 72, 80, 88, 92];
+    positions.forEach(pct => {
+      const tree = document.createElement('div');
+      tree.className = 'tree';
+      tree.style.left = pct + '%';
+      tree.innerHTML = `<div class="tree-leaves"></div><div class="tree-trunk"></div>`;
+      treeContainer.appendChild(tree);
+    });
+
+    // ── Floating particles (emerald/grass pixels) ──
+    const particleContainer = document.getElementById('particles');
+    const colors = ['#4ade80', '#fbbf24', '#ef4444', '#60a5fa', '#a78bfa'];
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `
+        left: ${Math.random() * 100}%;
+        top: ${Math.random() * 60}%;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        animation-duration: ${4 + Math.random() * 8}s;
+        animation-delay: ${-Math.random() * 8}s;
+        width: ${Math.random() > 0.5 ? 8 : 4}px;
+        height: ${Math.random() > 0.5 ? 8 : 4}px;
+        opacity: 0;
+      `;
+      particleContainer.appendChild(p);
+    }
+
+    // ── Count box flip animation on second tick ──
+    setInterval(() => {
+      const secs = document.getElementById('secs');
+      secs.style.transform = 'scale(0.9)';
+      setTimeout(() => secs.style.transform = '', 100);
+    }, 1000);
+  </script>
+</body>
+</html>
